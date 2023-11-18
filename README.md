@@ -2,8 +2,6 @@
 
 N-Card (and clones) Universal Loader
 
-[URL TO BE ADDED LATER]
-
 This is a custom udisk replacement for the N-Card and it's clones. This version requires flashing to the cart via usb.
 
 This will simply launch `BOOT.NDS` homebrew on the root of the NAND. A fall back file browsing UI is added if boot.nds is missing or if B button is held on boot.
