@@ -10,9 +10,16 @@ This will simply launch `BOOT.NDS` homebrew on the root of the NAND. A fall back
 
 1. Ensure your cart had previously been updated to udisk 1.45 and is formatted to be work with udisk 1.45 and the 1.45 matching DLDI driver.
 2. Find and connect a DS/DS Lite with GBA slot2 writer device for your N-card/clone to PC.
-3. Boot up DS and boot the game while holding [L + R + A + B + DPad Up] at the same time until you see "USB SAFE BLOCK" text on bottom screen.
+3. Boot up DS and boot the cart while holding [L] + [R] + [A] + [B] + [DPad Up] at the same time until you see "USB SAFE BLOCK" text on bottom screen.
 4. Run the included UPDATE_ALL.cmd file to have USB exe flash the new SRL to the cart.
 5. After the process is complete, reboot and see your changes live! File browser will come up if boot.nds is not present or if cart is booted with B button held.
+6. Note that for Xmenu to operate correctly you must run udisk first. You can use udisk 1.45 as your boot.nds if you wish to auto boot into xmenu. The udisk.srl included in the arm9/binaries source can be used for this purpose. Just copy and rename to boot.nds to have XuluMenu autoboot it or as udisk.nds if you wish to use something else as boot.nds
+
+### Recovery options
+
+Holding B while booting will skip auto booting boot.nds and show file browser. If fat init fails, built in uDisk will run.
+However if fat init hangs you can boot while holding L + R shoulder buttons to bring up recovery menu that will let you boot into built in udisk 1.45.
+Do so while holding START + SELECT to boot udisk into format menu if you need to reformat your cart's file system.
 
 ### License
 
