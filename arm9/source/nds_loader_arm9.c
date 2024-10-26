@@ -28,7 +28,7 @@
 #include <fat.h>
 
 #include "load_bin.h"
-#include "loadAlt_bin.h"
+#include "udiskloader_bin.h"
 #include "binaries.h"
 #include "tonccpy.h"
 
@@ -229,8 +229,12 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS) {
 	return true;
 }
 
-int runUdisk() {
-	tonccpy((void*)TMP_DATA, (void*)udiskData, (udiskData_end - udiskData));
+int runSRLbinary(bool isStage2) {
+	if (isStage2) { 
+		tonccpy((void*)TMP_DATA, (void*)stage2Data, (stage2_end - stage2Data));
+	} else {
+		tonccpy((void*)TMP_DATA, (void*)udiskData, (udiskData_end - udiskData));
+	}
 	// Start Bootloader
 	irqDisable(IRQ_ALL);
 	// Direct CPU access to VRAM bank D
@@ -238,14 +242,14 @@ int runUdisk() {
 	// Clear VRAM
 	vramset (LCDC_BANK_D, 0x0000, 128 * 1024);
 	// Load the loader/patcher into the correct address
-	vramcpy (LCDC_BANK_D, loadAlt_bin, loadAlt_bin_size);
+	vramcpy (LCDC_BANK_D, udiskloader_bin, udiskloader_bin_size);
 	// Give the VRAM to the ARM7
 	VRAM_D_CR = VRAM_ENABLE | VRAM_D_ARM7_0x06020000;
 	// Reset into a passme loop
 	REG_EXMEMCNT = 0xFFFF;
-	*((vu32*)0x027FFFFC) = 0;
-	*((vu32*)0x027FFE04) = (u32)0xE59FF018;
-	*((vu32*)0x027FFE24) = (u32)0x027FFE04;
+	*((vu32*)0x02FFFFFC) = 0;
+	*((vu32*)0x02FFFE04) = (u32)0xE59FF018;
+	*((vu32*)0x02FFFE24) = (u32)0x02FFFE04;
 	resetARM7(0x06020000);
 	swiSoftReset();
 	return 0;

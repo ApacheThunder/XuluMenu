@@ -10,7 +10,7 @@ export TOPDIR := $(CURDIR)
 
 include $(DEVKITARM)/ds_rules
 
-.PHONY: data bootloader bootloaderalt clean
+.PHONY: data bootloader udiskloader clean
 
 #---------------------------------------------------------------------------------
 # main targets
@@ -37,15 +37,15 @@ data:
 bootloader: data
 	$(MAKE) -C bootloader LOADBIN=$(TOPDIR)/data/load.bin
 
-bootloaderalt: data
-	$(MAKE) -C bootloaderalt LOADBIN=$(TOPDIR)/data/loadAlt.bin
+udiskloader: data
+	$(MAKE) -C udiskloader LOADBIN=$(TOPDIR)/data/udiskloader.bin
 
 #---------------------------------------------------------------------------------
 arm7/$(TARGET).elf:
 	$(MAKE) -C arm7
 
 #---------------------------------------------------------------------------------
-arm9/$(TARGET).elf: bootloader bootloaderalt
+arm9/$(TARGET).elf: bootloader udiskloader
 	$(MAKE) -C arm9
 
 #---------------------------------------------------------------------------------
@@ -53,6 +53,6 @@ clean:
 	$(MAKE) -C arm9 clean
 	$(MAKE) -C arm7 clean
 	$(MAKE) -C bootloader clean
-	$(MAKE) -C bootloaderalt clean
+	$(MAKE) -C udiskloader clean
 	rm -rf data
 	rm -f $(TARGET).nds

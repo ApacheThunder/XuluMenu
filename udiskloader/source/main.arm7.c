@@ -49,7 +49,7 @@
 extern void arm7_clearmem (void* loc, size_t len);
 extern void arm7_reset (void);
 
-#define NDS_HEADER 0x027FFE00
+#define NDS_HEADER 0x02FFFE00
 
 #define TMP_DATA 0x02100000
 

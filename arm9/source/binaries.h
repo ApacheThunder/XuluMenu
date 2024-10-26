@@ -8,6 +8,8 @@ extern "C" {
 
 extern void udiskData();
 extern void udiskData_end();
+extern void stage2Data();
+extern void stage2_end();
 
 #ifdef __cplusplus
 }

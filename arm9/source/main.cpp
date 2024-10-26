@@ -67,15 +67,15 @@ int FileBrowser() {
 		// Construct a command line
 		vector<string> argarray;
 		if (!argsFillArray(filename, argarray)) {
-			iprintf("Invalid NDS or arg file selected\n");
+			iprintf("\n\nInvalid NDS or arg file selected\n");
 		} else {
-			iprintf("Running %s with %d parameters\n", argarray[0].c_str(), argarray.size());
+			iprintf("\n\nRunning %s with %d\nparameters\n", argarray[0].c_str(), argarray.size());
 			// Make a copy of argarray using C strings, for the sake of runNdsFile
 			vector<const char*> c_args;
 			for (const auto& arg: argarray) { c_args.push_back(arg.c_str()); }
 			// Try to run the NDS file with the given arguments
 			int err = runNdsFile(c_args[0], c_args.size(), &c_args[0]);
-			iprintf("Start failed. Error %i\n", err);
+			iprintf("\n\nStart failed. Error %i\n", err);
 		}
 		argarray.clear();
 		while (1) {
@@ -97,17 +97,23 @@ int RecoveryPrompt(void) {
 		scanKeys();
 		if(keysDown() & KEY_A)break;
 	}
-	return runUdisk(); 
+	return runSRLbinary(false); 
 }
 
 int main(void) {
 	// Any error results in starting integrated uDisk 1.45 SRL as fall back
 	scanKeys();
-	if ((keysHeld() & KEY_L) && (keysHeld() & KEY_R))return RecoveryPrompt(); // Recovery option if FAT init hangs
-	
+	u32 KeysHeld = keysHeld();
+	if ((KeysHeld & KEY_L) && (KeysHeld & KEY_R) && (KeysHeld & KEY_A) && (KeysHeld & KEY_B) && (KeysHeld & KEY_UP)) {
+		return runSRLbinary(true); // Recovery option if need to boot stage2
+	} else if ((KeysHeld & KEY_L) && (KeysHeld & KEY_R)) {
+		return RecoveryPrompt(); // Recovery option if FAT init hangs
+	}
 	if (!fatInitDefault())return RecoveryPrompt();
-	if((access("/boot.nds", F_OK) == 0) && !(keysHeld() & KEY_B))runNdsFile("/boot.nds", 0, NULL);
-	if((access("/udisk.nds", F_OK) == 0) && !(keysHeld() & KEY_B))runNdsFile("/udisk.nds", 0, NULL);
+	if (!(KeysHeld & KEY_B)) {
+		if((access("/boot.nds", F_OK) == 0))return runNdsFile("/boot.nds", 0, NULL);
+		if((access("/udisk.nds", F_OK) == 0))return runNdsFile("/udisk.nds", 0, NULL);
+	}
 	FileBrowser();
 	return RecoveryPrompt();
 }

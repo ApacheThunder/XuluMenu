@@ -12,7 +12,7 @@ endif
 # SOURCES is a list of directories containing source code
 # INCLUDES is a list of directories containing extra header files
 #---------------------------------------------------------------------------------
-TARGET		:=	loadAlt
+TARGET		:=	udiskloader
 BUILD		:=	build
 SOURCES		:=	source source/patches 
 INCLUDES	:=	build ../include
@@ -24,9 +24,9 @@ SPECS		:=  specs
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb-interwork -march=armv4t -mtune=arm7tdmi
 
-CFLAGS	:=	-g -Wall -O2\
-			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer\
-			-fomit-frame-pointer\
+CFLAGS	:=	-g -Wall -O2 \
+			-mcpu=arm7tdmi -mtune=arm7tdmi -fomit-frame-pointer \
+			-fomit-frame-pointer \
 			-ffast-math \
 			$(ARCH)
 

@@ -36,7 +36,7 @@ typedef enum {
 
 #define LOAD_DEFAULT_NDS 0
 
-int runUdisk();
+int runSRLbinary(bool isStage2);
 
 eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool dldiPatchNds, int argc, const char** argv);
 

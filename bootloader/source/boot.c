@@ -285,6 +285,17 @@ void startBinary_ARM7 (void) {
 	while(REG_VCOUNT==191);
 	// copy NDS ARM9 start address into the header, starting ARM9
 	*((vu32*)0x02FFFE24) = TEMP_ARM9_START_ADDRESS;
+	
+	bool isXmenu = false;
+	
+	switch (*((vu16*)0x02FFFF5E)) {
+		case 0xF63D: { isXmenu = true; }break;
+		case 0x0695: { isXmenu = true; }break;
+		case 0xE4C4: { isXmenu = true; }break;
+		case 0x918C: { isXmenu = true; }break;
+	}
+	
+	
 	ARM9_START_FLAG = 1;
 	// Start ARM7
 	VoidFn arm7code = *(VoidFn*)(0x2FFFE34);
@@ -294,9 +305,7 @@ void startBinary_ARM7 (void) {
 int sdmmc_sd_readsectors(u32 sector_no, u32 numsectors, void *out);
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // Main function
-bool sdmmc_inserted() {
-	return true;
-}
+bool sdmmc_inserted() { return true; }
 
 bool sdmmc_startup() {
 	sdmmc_controller_init(true);
@@ -324,18 +333,9 @@ int main (void) {
 #endif
 	u32 fileCluster = storedFileCluster;
 	// Init card
-	if(!FAT_InitFiles(initDisc))
-	{
-		return -1;
-	}
-	if ((fileCluster < CLUSTER_FIRST) || (fileCluster >= CLUSTER_EOF)) 	/* Invalid file cluster specified */
-	{
-		fileCluster = getBootFileCluster(bootName);
-	}
-	if (fileCluster == CLUSTER_FREE)
-	{
-		return -1;
-	}
+	if(!FAT_InitFiles(initDisc))return -1;
+	if ((fileCluster < CLUSTER_FIRST) || (fileCluster >= CLUSTER_EOF))fileCluster = getBootFileCluster(bootName); /* Invalid file cluster specified */
+	if (fileCluster == CLUSTER_FREE)return -1;
 
 	// ARM9 clears its memory part 2
 	// copy ARM9 function to RAM, and make the ARM9 jump to it
@@ -379,7 +379,8 @@ int main (void) {
 #endif
 	// Pass command line arguments to loaded program
 	passArgs_ARM7();
-
+	
+		
 	startBinary_ARM7();
 
 	return 0;
