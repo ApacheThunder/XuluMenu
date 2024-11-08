@@ -26,6 +26,7 @@
 #include "disc_io.h"
 #include "io_dldi.h"
 
+
 static inline bool CARD_StartUp (void) {
 	return _io_dldi.fn_startup();
 }

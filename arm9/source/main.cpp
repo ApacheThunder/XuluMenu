@@ -34,6 +34,7 @@
 #include "font.h"
 #include "consolebg.h"
 #include "iconTitle.h"
+#include "nrio_detect.h"
 #include "nds_loader_arm9.h"
 
 using namespace std;
@@ -95,9 +96,14 @@ int RecoveryPrompt(void) {
 	while(1) {
 		swiWaitForVBlank();
 		scanKeys();
-		if(keysDown() & KEY_A)break;
+		if (keysDown() == 0)break;
 	}
-	return runSRLbinary(false); 
+	while(1) {
+		swiWaitForVBlank();
+		scanKeys();
+		if (keysDown() != 0)break;
+	}
+	return runSRLbinary(0); 
 }
 
 int main(void) {
@@ -105,10 +111,14 @@ int main(void) {
 	scanKeys();
 	u32 KeysHeld = keysHeld();
 	if ((KeysHeld & KEY_L) && (KeysHeld & KEY_R) && (KeysHeld & KEY_A) && (KeysHeld & KEY_B) && (KeysHeld & KEY_UP)) {
-		return runSRLbinary(true); // Recovery option if need to boot stage2
+		return runSRLbinary(1); // Recovery option if need to boot stage2. (only accessible if XuluMenu boots before stage2. Aka, N-Cards setup as bootleg games)
 	} else if ((KeysHeld & KEY_L) && (KeysHeld & KEY_R)) {
 		return RecoveryPrompt(); // Recovery option if FAT init hangs
 	}
+	nrio_usb_type_t usb = nrio_usb_detect();
+	if (!(KeysHeld & KEY_SELECT) && !(KeysHeld & KEY_B) && (usb.board_type != 0)) {
+		return runSRLbinary(2); // New open source version of uDisk with better performance/Linux compatiblity. Courtasy of asiekierka
+	}	
 	if (!fatInitDefault())return RecoveryPrompt();
 	if (!(KeysHeld & KEY_B)) {
 		if((access("/boot.nds", F_OK) == 0))return runNdsFile("/boot.nds", 0, NULL);

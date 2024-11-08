@@ -36,7 +36,7 @@ typedef enum {
 
 #define LOAD_DEFAULT_NDS 0
 
-int runSRLbinary(bool isStage2);
+int runSRLbinary(int srlType);
 
 eRunNdsRetCode runNds (const void* loader, u32 loaderSize, u32 cluster, bool initDisc, bool dldiPatchNds, int argc, const char** argv);
 
@@ -49,3 +49,4 @@ bool installBootStub(bool havedsiSD);
 #endif
 
 #endif // NDS_LOADER_ARM7_H
+

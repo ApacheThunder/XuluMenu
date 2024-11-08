@@ -8,3 +8,4 @@ void __attribute__ ((long_call)) __attribute__((noreturn)) __attribute__((naked)
 #define ARM9_START_FLAG (*(vu8*)0x02FFFDFB)
 
 #endif // _BOOT_H_
+

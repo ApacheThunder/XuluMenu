@@ -15,11 +15,11 @@ include $(DEVKITARM)/ds_rules
 # GRAPHICS is a list of directories containing image files to be converted with grit
 # all directories are relative to this makefile
 #---------------------------------------------------------------------------------
-BUILD    := build
-SOURCES  := source
-INCLUDES := include
-DATA     := ../data
-GRAPHICS := gfx
+BUILD		:= build
+SOURCES		:= source
+INCLUDES	:= include
+DATA		:= ../data
+GRAPHICS	:= gfx
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -42,6 +42,7 @@ LIBS := -lfat -lnds329
 # include and lib
 #---------------------------------------------------------------------------------
 LIBDIRS := $(LIBNDS) $(PORTLIBS)
+LIBDIRS32	:=	$(CURDIR)/../libraries/libnds32
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -89,7 +90,9 @@ export HFILES := $(PNGFILES:.png=.h) $(addsuffix .h,$(subst .,_,$(BINFILES)))
 export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir))\
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include)\
                    -I$(CURDIR)/$(BUILD)
-export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
+					$(foreach dir,$(LIBDIRS32),-L$(dir)/lib)
 
 .PHONY: $(BUILD) clean
 

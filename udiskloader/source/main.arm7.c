@@ -46,12 +46,13 @@
 #include "common.h"
 #include "tonccpy.h"
 
+
+#define TMP_DATA 0x02200000
+
 extern void arm7_clearmem (void* loc, size_t len);
 extern void arm7_reset (void);
 
 #define NDS_HEADER 0x02FFFE00
-
-#define TMP_DATA 0x02100000
 
 #define FW_READ	 0x03
 tNDSHeader* ndsHeader;
@@ -117,7 +118,7 @@ void arm7_resetMemory () {
 		
 	// clear most of EXRAM - except after 0x023FD800, which has the ARM9 code
 	// arm7_clearmem ((void*)0x02000000, 0x003FD800);
-	arm7_clearmem ((void*)0x02000000, 0x000FFFFF); // Skip temperary header/binary data
+	arm7_clearmem ((void*)0x02000000, 0x00200000); // Skip temperary header/binary data
 	
 	REG_IE = 0;
 	REG_IF = ~0;
@@ -152,7 +153,7 @@ void arm7_loadBinary() {
 	tonccpy((void*)ndsHeader->arm7destination, ((void*)((u32)TMP_DATA + ndsHeader->arm7romOffset)), ndsHeader->arm7binarySize);
 	
 	// Clear temperary rom data now that they are copied
-	arm7_clearmem ((void*)0x02100000, ndsHeader->romSize);
+	// if (ndsHeader->arm9romOffset < ((u32)TMP_DATA - 0x02000000))arm7_clearmem ((void*)((u32)TMP_DATA), ndsHeader->romSize);
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

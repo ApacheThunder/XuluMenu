@@ -39,7 +39,7 @@
 
 #include "nds_loader_arm9.h"
 
-#define TMP_DATA 0x02100000
+#define TMP_DATA 0x02200000
 
 #define LCDC_BANK_D (u16*)0x06860000
 #define STORED_FILE_CLUSTER (*(((u32*)LCDC_BANK_D) + 1))
@@ -97,12 +97,6 @@ enum DldiOffsets {
 static addr_t readAddr (data_t *mem, addr_t offset) { return ((addr_t*)mem)[offset/sizeof(addr_t)]; }
 
 static void writeAddr (data_t *mem, addr_t offset, addr_t value) { ((addr_t*)mem)[offset/sizeof(addr_t)] = value; }
-
-static void vramset (volatile void* dst, u16 val, int len) {
-	vu32* dst32 = (vu32*)dst;
-	u32 val32 = val | (val << 16);
-	for ( ; len > 0; len -= 4) { *dst32++ = val32; }
-}
 
 static void vramcpy (void* dst, const void* src, int len) {
 	u16* dst16 = (u16*)dst;
@@ -229,22 +223,28 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS) {
 	return true;
 }
 
-int runSRLbinary(bool isStage2) {
-	if (isStage2) { 
-		tonccpy((void*)TMP_DATA, (void*)stage2Data, (stage2_end - stage2Data));
-	} else {
-		tonccpy((void*)TMP_DATA, (void*)udiskData, (udiskData_end - udiskData));
+int runSRLbinary(int srlType) {
+	
+	switch (srlType) {
+		case 1:		tonccpy((void*)TMP_DATA, (void*)stage2Data, (stage2Data_end - stage2Data)); break;
+		case 2:		tonccpy((void*)TMP_DATA, (void*)nriousbData, (nriousbData_end - nriousbData)); break;
+		default:	tonccpy((void*)TMP_DATA, (void*)udiskData, (udiskData_end - udiskData)); break;
 	}
+	
+	/*switch (srlType) {
+		case 1:		decompress((u8*)stage2Data, (u8*)TMP_DATA, LZ77Vram); break;
+		case 2:		decompress((u8*)nriousbData, (u8*)TMP_DATA, LZ77Vram); break;
+		default:	decompress((u8*)udiskData, (u8*)TMP_DATA, LZ77Vram); break;
+	}*/
+	
 	// Start Bootloader
 	irqDisable(IRQ_ALL);
 	// Direct CPU access to VRAM bank D
-	VRAM_D_CR = VRAM_ENABLE | VRAM_D_LCD;
-	// Clear VRAM
-	vramset (LCDC_BANK_D, 0x0000, 128 * 1024);
+	VRAM_D_CR = (VRAM_ENABLE | VRAM_D_LCD);
 	// Load the loader/patcher into the correct address
 	vramcpy (LCDC_BANK_D, udiskloader_bin, udiskloader_bin_size);
 	// Give the VRAM to the ARM7
-	VRAM_D_CR = VRAM_ENABLE | VRAM_D_ARM7_0x06020000;
+	VRAM_D_CR = (VRAM_ENABLE | VRAM_D_ARM7_0x06020000);
 	// Reset into a passme loop
 	REG_EXMEMCNT = 0xFFFF;
 	*((vu32*)0x02FFFFFC) = 0;

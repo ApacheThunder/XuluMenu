@@ -40,11 +40,13 @@ Helpful information:
 #include <nds/timers.h>
 #include <nds/memory.h>
 #include <nds/arm7/audio.h>
+#include <stddef.h>
 #include "fat.h"
 #include "dldi_patcher.h"
 #include "card.h"
 #include "boot.h"
 #include "sdmmc.h"
+#include "nds/card.h"
 
 void arm7clearRAM();
 
@@ -67,11 +69,56 @@ extern unsigned long argSize;
 extern unsigned long dsiSD;
 extern unsigned long dsiMode;
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Firmware stuff
-
 #define FW_READ        0x03
 
+//---------------------------------------------------------------------------------
+void cardWriteCommand(const u8 *command) {
+//---------------------------------------------------------------------------------
+	int index;
+
+	REG_AUXSPICNTH = CARD_CR1_ENABLE | CARD_CR1_IRQ;
+
+	for (index = 0; index < 8; index++) {
+		REG_CARD_COMMAND[7-index] = command[index];
+	}
+}
+
+//---------------------------------------------------------------------------------
+void cardPolledTransfer(u32 flags, u32 *destination, u32 length, const u8 *command) {
+//---------------------------------------------------------------------------------
+	u32 data;
+	cardWriteCommand(command);
+	REG_ROMCTRL = flags;
+	u32 * target = destination + length;
+	do {
+		// Read data if available
+		if (REG_ROMCTRL & CARD_DATA_READY) {
+			data=REG_CARD_DATA_RD;
+			if (NULL != destination && destination < target)
+				*destination++ = data;
+		}
+	} while (REG_ROMCTRL & CARD_BUSY);
+}
+
+//---------------------------------------------------------------------------------
+void cardParamCommand (u8 command, u32 parameter, u32 flags, u32 *destination, u32 length) {
+//---------------------------------------------------------------------------------
+	u8 cmdData[8];
+	
+	cmdData[7] = (u8) command;
+	cmdData[6] = (u8) (parameter >> 24);
+	cmdData[5] = (u8) (parameter >> 16);
+	cmdData[4] = (u8) (parameter >>  8);
+	cmdData[3] = (u8) (parameter >>  0);
+	cmdData[2] = 0;
+	cmdData[1] = 0;
+	cmdData[0] = 0;
+
+	cardPolledTransfer(flags, destination, length, cmdData);
+}
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// Firmware stuff
 void boot_readFirmware (uint32 address, uint8 * buffer, uint32 size) {
   uint32 index;
 
@@ -162,9 +209,6 @@ void passArgs_ARM7 (void) {
 	__system_argv->commandLine = (char*)argDst;
 	__system_argv->length = argSize;
 }
-
-
-
 
 /*-------------------------------------------------------------------------
 resetMemory_ARM7
@@ -295,6 +339,22 @@ void startBinary_ARM7 (void) {
 		case 0x918C: { isXmenu = true; }break;
 	}
 	
+	if (isXmenu) {
+		*((vu8*)0x02FFFF70) = 0x91; // Special flag in ram xmenu checks. If not == 0x91 it will throw "Need udisk 1.45" error
+		
+		/* // 64/512kbit? // set before booting xmenu as well?
+		cardParamCommand (0xC1, 0x0B6B0000, 0xAF000000, NULL, 0);
+		cardParamCommand (0xC1, 0x0C200000, 0xAF000000, NULL, 0);
+		
+		// Set save type to 2Mbit?
+		cardParamCommand (0xC1, 0x0B740000, CARD_ACTIVATE | CARD_nRESET | CARD_BLK_SIZE(7) | BIT(17), NULL, 0);
+		cardParamCommand (0xC1, 0x0C330000, CARD_ACTIVATE | CARD_nRESET | CARD_BLK_SIZE(7) | BIT(17), NULL, 0);
+		
+		// 4kbit?
+		cardParamCommand (0xC1, 0x0B600000, CARD_ACTIVATE | CARD_nRESET | CARD_BLK_SIZE(7) | BIT(17), NULL, 0);
+		cardParamCommand (0xC1, 0x0C000000, CARD_ACTIVATE | CARD_nRESET | CARD_BLK_SIZE(7) | BIT(17), NULL, 0);*/
+		
+	}
 	
 	ARM9_START_FLAG = 1;
 	// Start ARM7
