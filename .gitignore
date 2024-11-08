@@ -32,10 +32,11 @@
 *.app
 
 # devkitARM/libnds/3DS compiled stuff
-*.bin
+build/*.bin
+data/*.bin
 *.tmd
 *.cia
-*.cmd
+/*.cmd
 *.nds
 *.app
 *.arm7
