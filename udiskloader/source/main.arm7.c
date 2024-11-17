@@ -47,7 +47,7 @@
 #include "tonccpy.h"
 
 
-#define TMP_DATA 0x02200000
+#define TMP_DATA 0x02300000
 
 extern void arm7_clearmem (void* loc, size_t len);
 extern void arm7_reset (void);

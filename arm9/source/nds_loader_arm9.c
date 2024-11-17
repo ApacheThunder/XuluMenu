@@ -29,7 +29,7 @@
 
 #include "load_bin.h"
 #include "udiskloader_bin.h"
-#include "binaries.h"
+#include "lzss.h"
 #include "tonccpy.h"
 
 #ifndef _NO_BOOTSTUB_
@@ -39,7 +39,7 @@
 
 #include "nds_loader_arm9.h"
 
-#define TMP_DATA 0x02200000
+#define TMP_DATA 0x02300000
 
 #define LCDC_BANK_D (u16*)0x06860000
 #define STORED_FILE_CLUSTER (*(((u32*)LCDC_BANK_D) + 1))
@@ -223,19 +223,54 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS) {
 	return true;
 }
 
+
+
+#define nriousbData_size	0x1D6B8
+#define stage2Data_size		0x14600
+#define udiskData_size		0x91810
+
+#define nriousbData_lz_size	0x13CE9
+#define stage2Data_lz_size	0xBD06
+#define udiskData_lz_size	0x69BA6
+
+
+ALIGN(16) extern unsigned char nriousbData[nriousbData_lz_size];
+ALIGN(16) extern unsigned char stage2Data[stage2Data_lz_size];
+ALIGN(16) extern unsigned char udiskData[udiskData_lz_size];
+
+ALIGN(16) volatile u8* buffer;
+
 int runSRLbinary(int srlType) {
 	
-	switch (srlType) {
+	/*switch (srlType) {
 		case 1:		tonccpy((void*)TMP_DATA, (void*)stage2Data, (stage2Data_end - stage2Data)); break;
 		case 2:		tonccpy((void*)TMP_DATA, (void*)nriousbData, (nriousbData_end - nriousbData)); break;
 		default:	tonccpy((void*)TMP_DATA, (void*)udiskData, (udiskData_end - udiskData)); break;
-	}
+	}*/
 	
 	/*switch (srlType) {
 		case 1:		decompress((u8*)stage2Data, (u8*)TMP_DATA, LZ77Vram); break;
 		case 2:		decompress((u8*)nriousbData, (u8*)TMP_DATA, LZ77Vram); break;
 		default:	decompress((u8*)udiskData, (u8*)TMP_DATA, LZ77Vram); break;
 	}*/
+	
+	switch (srlType) {
+		case 1:	{ 
+			buffer = malloc(stage2Data_size);
+			LZ77_Decompress((u8*)stage2Data, (u8*)buffer);
+			tonccpy((void*)TMP_DATA, (void*)buffer, stage2Data_size);
+		} break;
+		case 2:	{
+			buffer = malloc(nriousbData_size);
+			LZ77_Decompress((u8*)nriousbData, (u8*)buffer);
+			tonccpy((void*)TMP_DATA, (void*)buffer, nriousbData_size);
+		} break;
+		default: {
+			buffer = malloc(udiskData_size);
+			LZ77_Decompress((u8*)udiskData, (u8*)buffer); 
+			tonccpy((void*)TMP_DATA, (void*)buffer, udiskData_size);
+		} break;
+	}
 	
 	// Start Bootloader
 	irqDisable(IRQ_ALL);
