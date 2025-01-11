@@ -121,8 +121,12 @@ int main(void) {
 	}	
 	if (!fatInitDefault())return RecoveryPrompt();
 	if (!(KeysHeld & KEY_B)) {
-		if((access("/boot.nds", F_OK) == 0))return runNdsFile("/boot.nds", 0, NULL);
-		if((access("/udisk.nds", F_OK) == 0))return runNdsFile("/udisk.nds", 0, NULL);
+		if ((access("/boot.nds", F_OK) == 0) || (access("/udisk.nds", F_OK) == 0)) {
+			if((access("/boot.nds", F_OK) == 0))return runNdsFile("/boot.nds", 0, NULL);
+			if((access("/udisk.nds", F_OK) == 0))return runNdsFile("/udisk.nds", 0, NULL);
+		} else {
+			return runSRLbinary(0);
+		}
 	}
 	FileBrowser();
 	return RecoveryPrompt();
