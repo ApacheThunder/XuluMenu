@@ -42,7 +42,7 @@ LIBS := -lfat -lnds9
 # include and lib
 #---------------------------------------------------------------------------------
 LIBDIRS := $(LIBNDS) $(PORTLIBS)
-LIBDIRS32	:=	$(CURDIR)/../libraries/libnds32
+# LIBDIRS32	:=	$(CURDIR)/../libraries/libnds32
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

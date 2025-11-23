@@ -229,7 +229,7 @@ static bool dldiPatchLoader (data_t *binData, u32 binSize, bool clearBSS) {
 #define stage2Data_size		0x14600
 #define udiskData_size		0x91810
 
-#define nriousbData_lz_size	0x13CE9
+#define nriousbData_lz_size	0xE0CD
 #define stage2Data_lz_size	0xBD06
 #define udiskData_lz_size	0x69BA6
 
